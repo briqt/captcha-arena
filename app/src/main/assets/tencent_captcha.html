@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>腾讯验证码</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, system-ui, sans-serif;
+            display: flex; flex-direction: column; 
+            align-items: center; justify-content: center;
+            min-height: 100vh; background: #f5f5f5; padding: 20px;
+        }
+        .btn {
+            padding: 16px 48px; font-size: 18px; 
+            background: #4CAF50; color: white; border: none;
+            border-radius: 8px; cursor: pointer; margin: 12px;
+        }
+        .btn:active { background: #388E3C; }
+        .result { margin-top: 20px; font-size: 14px; color: #666; 
+                   word-break: break-all; max-width: 100%; padding: 12px;
+                   background: white; border-radius: 8px; display: none; }
+        h2 { margin-bottom: 20px; color: #333; }
+    </style>
+</head>
+<body>
+    <h2>腾讯天御验证码</h2>
+    <button class="btn" id="btn-captcha" onclick="showCaptcha()">点击验证</button>
+    <div class="result" id="result"></div>
+
+    <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+    <script>
+        function showCaptcha() {
+            var captcha = new TencentCaptcha('2090803409', function(res) {
+                var resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                if (res.ret === 0) {
+                    resultDiv.innerHTML = '<b>✅ 验证通过</b><br>ticket: ' + res.ticket.substring(0, 30) + '...<br>randstr: ' + res.randstr;
+                    // Pass to Android
+                    if (window.CaptchaBridge) {
+                        window.CaptchaBridge.onResult(JSON.stringify({
+                            success: true, ticket: res.ticket, randstr: res.randstr
+                        }));
+                    }
+                } else if (res.ret === 2) {
+                    resultDiv.innerHTML = '用户关闭了验证码';
+                    if (window.CaptchaBridge) {
+                        window.CaptchaBridge.onResult(JSON.stringify({success: false, reason: 'closed'}));
+                    }
+                } else {
+                    resultDiv.innerHTML = '❌ 验证失败: ' + JSON.stringify(res);
+                    if (window.CaptchaBridge) {
+                        window.CaptchaBridge.onResult(JSON.stringify({success: false, reason: 'failed'}));
+                    }
+                }
+            });
+            captcha.show();
+        }
+    </script>
+</body>
+</html>
